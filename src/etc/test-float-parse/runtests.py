@@ -1,14 +1,4 @@
-#!/usr/bin/python2.7
-#
-# Copyright 2015 The Rust Project Developers. See the COPYRIGHT
-# file at the top-level directory of this distribution and at
-# http://rust-lang.org/COPYRIGHT.
-#
-# Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-# http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-# <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-# option. This file may not be copied, modified, or distributed
-# except according to those terms.
+#!/usr/bin/env python3
 
 """
 Testing dec2flt
@@ -21,8 +11,9 @@ random non-exhaustive tests for covering everything else.
 
 The actual tests (generating decimal strings and feeding them to dec2flt) is
 performed by a set of stand-along rust programs. This script compiles, runs,
-and supervises them. In particular, the programs report the strings they
-generate and the floating point numbers they converted those strings to.
+and supervises them. The programs report the strings they generate and the
+floating point numbers they converted those strings to, and this script
+checks that the results are correct.
 
 You can run specific tests rather than all of them by giving their names
 (without .rs extension) as command line parameters.
@@ -40,7 +31,7 @@ Instead, we take the input and compute the true value with bignum arithmetic
 (as a fraction, using the ``fractions`` module).
 
 Given an input string and the corresponding float computed via Rust, simply
-decode the float into f * 2^k (for intergers f, k) and the ULP.
+decode the float into f * 2^k (for integers f, k) and the ULP.
 We can now easily compute the error and check if it is within 0.5 ULP as it
 should be. Zero and infinites are handled similarly:
 
@@ -64,14 +55,14 @@ If a test binary writes *anything at all* to stderr or exits with an
 exit code that's not 0, the test fails.
 The output on stdout is treated as (f64, f32, decimal) record, encoded thusly:
 
-- The first eight bytes are a binary64 (native endianness).
-- The following four bytes are a binary32 (native endianness).
-- Then the corresponding string input follows, in ASCII (no newline).
+- First, the bits of the f64 encoded as an ASCII hex string.
+- Second, the bits of the f32 encoded as an ASCII hex string.
+- Then the corresponding string input, in ASCII
 - The record is terminated with a newline.
 
 Incomplete records are an error. Not-a-Number bit patterns are invalid too.
 
-The tests run serially but the validaition for a a single test is parallelized
+The tests run serially but the validation for a single test is parallelized
 with ``multiprocessing``. Each test is launched as a subprocess.
 One thread supervises it: Accepts and enqueues records to validate, observe
 stderr, and waits for the process to exit. A set of worker processes perform
@@ -96,10 +87,14 @@ from collections import namedtuple
 from subprocess import Popen, check_call, PIPE
 from glob import glob
 import multiprocessing
-import Queue
 import threading
 import ctypes
 import binascii
+
+try:  # Python 3
+    import queue as Queue
+except ImportError:  # Python 2
+    import Queue
 
 NUM_WORKERS = 2
 UPDATE_EVERY_N = 50000
@@ -176,7 +171,6 @@ def run(test):
 
 
 def interact(proc, queue):
-    line = ""
     n = 0
     while proc.poll() is None:
         line = proc.stdout.readline()
@@ -184,7 +178,6 @@ def interact(proc, queue):
             continue
         assert line.endswith('\n'), "incomplete line: " + repr(line)
         queue.put(line)
-        line = ""
         n += 1
         if n % UPDATE_EVERY_N == 0:
             msg("got", str(n // 1000) + "k", "records")
@@ -200,11 +193,12 @@ def interact(proc, queue):
 
 def main():
     global MAILBOX
-    tests = [os.path.splitext(f)[0] for f in glob('*.rs')
-                                    if not f.startswith('_')]
-    whitelist = sys.argv[1:]
-    if whitelist:
-        tests = [test for test in tests if test in whitelist]
+    all_tests = [os.path.splitext(f)[0] for f in glob('*.rs') if not f.startswith('_')]
+    args = sys.argv[1:]
+    if args:
+        tests = [test for test in all_tests if test in args]
+    else
+        tests = all_tests
     if not tests:
         print("Error: No tests to run")
         sys.exit(1)
@@ -217,8 +211,6 @@ def main():
     mailman.daemon = True
     mailman.start()
     for test in tests:
-        if whitelist and test not in whitelist:
-            continue
         run(test)
     MAILBOX.put(None)
     mailman.join()

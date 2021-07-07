@@ -1,101 +1,142 @@
 % Rust Documentation
 
-Welcome to the Rust documentation! You can use the section headings above
-to jump to any particular section.
+<style>
+nav {
+    display: none;
+}
+#search-input {
+    width: calc(100% - 58px);
+}
+#search-but {
+    cursor: pointer;
+}
+#search-but, #search-input {
+    padding: 4px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    outline: none;
+    font-size: 0.7em;
+    background-color: #fff;
+}
+#search-but:hover, #search-input:focus {
+    border-color: #55a9ff;
+}
+h2 {
+    font-size: 18px;
+}
+</style>
 
-# Getting Started
+Welcome to an overview of the documentation provided by the [Rust project].
+All of these projects are managed by the Docs Team; there are other
+unofficial documentation resources as well!
 
-If you haven't seen Rust at all yet, the first thing you should read is the
-introduction to [The Rust Programming Language](book/index.html). It'll give
-you a good idea of what Rust is like.
+Many of these resources take the form of "books"; we collectively call these
+"The Rust Bookshelf." Some are large, some are small.
 
-The book provides a lengthy explanation of Rust, its syntax, and its
-concepts. Upon completing the book, you'll be an intermediate Rust
-developer, and will have a good grasp of the fundamental ideas behind
-Rust.
+# Learn Rust
 
-[Rust By Example][rbe] was originally a community resource, but was then
-donated to the Rust project. As the name implies, it teaches you Rust through a
-series of small examples.
+If you'd like to learn Rust, this is the spot for you! All of these resources
+assume that you have programmed before, but not in any specific language:
 
-[rbe]: http://rustbyexample.com/
+## The Rust Programming Language
 
-# Language Reference
+Affectionately nicknamed "the book," [The Rust Programming
+Language](book/index.html) will give you an overview of the language from
+first principles. You'll build a few projects along the way, and by the end,
+you'll have a solid grasp of the language.
 
-Rust does not have an exact specification yet, but an effort to describe as much of
-the language in as much detail as possible is in [the reference](reference.html).
+## Rust By Example
 
-# Standard Library Reference
+If reading multiple hundreds of pages about a language isn't your style, then
+[Rust By Example](rust-by-example/index.html) has you covered. While the book talks about code with
+a lot of words, RBE shows off a bunch of code, and keeps the talking to a
+minimum. It also includes exercises!
 
-We have [API documentation for the entire standard
-library](std/index.html). There's a list of crates on the left with more
-specific sections, or you can use the search bar at the top to search for
-something if you know its name.
+## Rustlings
 
-# Tools
+[Rustlings](https://github.com/rust-lang/rustlings) guides you through downloading and setting up the Rust toolchain,
+and teaches you the basics of reading and writing Rust syntax. It's an
+alternative to Rust by Example that works with your own environment.
 
-[Cargo](https://crates.io) is the Rust's package manager providing access to libraries
-beyond the standard one, and its website contains lots of good documentation.
+# Use Rust
 
-[`rustdoc`](book/documentation.html) is the Rust's documentation generator, a tool converting
-annotated source code into HTML docs.
+Once you've gotten familiar with the language, these resources can help you
+when you're actually using it day-to-day.
 
-A bunch of non-official tools are available, such as [Racer](https://github.com/phildawes/racer)
-(code completion engine), or [rustfmt](https://github.com/nrc/rustfmt) (source code formatter),
-or text editor plugins.
+## The Standard Library
 
-# Community & Getting Help
+Rust's standard library has [extensive API documentation](std/index.html),
+with explanations of how to use various things, as well as example code for
+accomplishing various tasks.
 
-If you need help with something, or just want to talk about Rust with others,
-there are a few places you can do that:
+<div>
+  <form action="std/index.html" method="get">
+    <input id="search-input" type="search" name="search"
+           placeholder="Search through the standard library"/>
+    <button id="search-but">Search</button>
+  </form>
+</div>
 
-The Rust IRC channels on [irc.mozilla.org](irc://irc.mozilla.org/) are the
-fastest way to get help.
-[`#rust`](http://chat.mibbit.com/?server=irc.mozilla.org&channel=%23rust) is
-the general discussion channel, and you'll find people willing to help you with
-any questions you may have.
+## The Edition Guide
 
-There are also three specialty channels:
-[`#rust-gamedev`](http://chat.mibbit.com/?server=irc.mozilla.org&channel=%23rust-gamedev)
-and
-[`#rust-osdev`](http://chat.mibbit.com/?server=irc.mozilla.org&channel=%23rust-osdev)
-are for game development and operating system development, respectively.
-There's also
-[`#rust-internals`](http://chat.mibbit.com/?server=irc.mozilla.org&channel=%23rust-internals), which is for discussion of the development of Rust itself.
+[The Edition Guide](edition-guide/index.html) describes the Rust editions.
 
-You can also get help on [Stack
-Overflow](https://stackoverflow.com/questions/tagged/rust). Searching for your
-problem might reveal someone who has asked it before!
+## The Rustc Book
 
-There is an active [subreddit](https://reddit.com/r/rust) with lots of
-discussion and news about Rust.
+[The Rustc Book](rustc/index.html) describes the Rust compiler, `rustc`.
 
-There is also a [user forum](https://users.rust-lang.org), for all
-user-oriented discussion, and a [developer
-forum](https://internals.rust-lang.org/), where the development of Rust
-itself is discussed.
+## The Cargo Book
 
-# FAQs
+[The Cargo Book](cargo/index.html) is a guide to Cargo, Rust's build tool and dependency manager.
 
-There are questions that are asked quite often, so we've made FAQs for them:
+## The Rustdoc Book
 
-* [Language Design FAQ](complement-design-faq.html)
-* [Language FAQ](complement-lang-faq.html)
-* [Project FAQ](complement-project-faq.html)
-* [How to submit a bug report](https://github.com/rust-lang/rust/blob/master/CONTRIBUTING.md#bug-reports)
+[The Rustdoc Book](rustdoc/index.html) describes our documentation tool, `rustdoc`.
 
-# The Error Index
+## Extended Error Listing
 
-If you encounter an error while compiling your code you may be able to look it
-up in the [Rust Compiler Error Index](error-index.html).
+Many of Rust's errors come with error codes, and you can request extended
+diagnostics from the compiler on those errors. You can also [read them
+here](error-index.html), if you prefer to read them that way.
 
-# Community Translations
+# Master Rust
 
-Several projects have been started to translate the documentation into other
-languages:
+Once you're quite familiar with the language, you may find these advanced
+resources useful.
 
-- [Russian](https://github.com/kgv/rust_book_ru)
-- [Korean](https://github.com/rust-kr/doc.rust-kr.org)
-- [Chinese](https://github.com/KaiserY/rust-book-chinese)
-- [Spanish](https://goyox86.github.io/elpr)
-- [German](https://panicbit.github.io/rustbook-de)
+## The Reference
+
+[The Reference](reference/index.html) is not a formal spec, but is more detailed and
+comprehensive than the book.
+
+## The Rustonomicon
+
+[The Rustonomicon](nomicon/index.html) is your guidebook to the dark arts of unsafe
+Rust. It's also sometimes called "the 'nomicon."
+
+## The Unstable Book
+
+[The Unstable Book](unstable-book/index.html) has documentation for unstable features.
+
+## The `rustc` Contribution Guide
+
+[The `rustc` Guide](https://rustc-dev-guide.rust-lang.org/) documents how
+the compiler works and how to contribute to it. This is useful if you want to build
+or modify the Rust compiler from source (e.g. to target something non-standard).
+
+# Specialize Rust
+
+When using Rust in specific domain areas, consider using the following resources tailored to each domain.
+
+## Embedded Systems
+
+When developing for Bare Metal or Embedded Linux systems, you may find these resources maintained by the [Embedded Working Group] useful.
+
+[Embedded Working Group]: https://github.com/rust-embedded
+
+### The Embedded Rust Book
+
+[The Embedded Rust Book] is targeted at developers familiar with embedded development and familiar with Rust, but have not used Rust for embedded development.
+
+[The Embedded Rust Book]: embedded-book/index.html
+[Rust project]: https://www.rust-lang.org

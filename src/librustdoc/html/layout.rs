@@ -1,191 +1,113 @@
-// Copyright 2013 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution and at
-// http://rust-lang.org/COPYRIGHT.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
+use std::path::PathBuf;
 
-use std::fmt;
-use std::io::prelude::*;
-use std::io;
+use rustc_data_structures::fx::FxHashMap;
 
-use externalfiles::ExternalHtml;
+use crate::externalfiles::ExternalHtml;
+use crate::html::escape::Escape;
+use crate::html::format::{Buffer, Print};
+use crate::html::render::{ensure_trailing_slash, StylePath};
 
-#[derive(Clone)]
-pub struct Layout {
-    pub logo: String,
-    pub favicon: String,
-    pub external_html: ExternalHtml,
-    pub krate: String,
-    pub playground_url: String,
+use serde::Serialize;
+
+#[derive(Clone, Serialize)]
+crate struct Layout {
+    crate logo: String,
+    crate favicon: String,
+    crate external_html: ExternalHtml,
+    crate default_settings: FxHashMap<String, String>,
+    crate krate: String,
+    /// The given user css file which allow to customize the generated
+    /// documentation theme.
+    crate css_file_extension: Option<PathBuf>,
+    /// If false, the `select` element to have search filtering by crates on rendered docs
+    /// won't be generated.
+    crate generate_search_filter: bool,
 }
 
-pub struct Page<'a> {
-    pub title: &'a str,
-    pub ty: &'a str,
-    pub root_path: &'a str,
-    pub description: &'a str,
-    pub keywords: &'a str
+#[derive(Serialize)]
+crate struct Page<'a> {
+    crate title: &'a str,
+    crate css_class: &'a str,
+    crate root_path: &'a str,
+    crate static_root_path: Option<&'a str>,
+    crate description: &'a str,
+    crate keywords: &'a str,
+    crate resource_suffix: &'a str,
+    crate extra_scripts: &'a [&'a str],
+    crate static_extra_scripts: &'a [&'a str],
 }
 
-pub fn render<T: fmt::Display, S: fmt::Display>(
-    dst: &mut io::Write, layout: &Layout, page: &Page, sidebar: &S, t: &T)
-    -> io::Result<()>
-{
-    write!(dst,
-r##"<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="generator" content="rustdoc">
-    <meta name="description" content="{description}">
-    <meta name="keywords" content="{keywords}">
-
-    <title>{title}</title>
-
-    <link rel="stylesheet" type="text/css" href="{root_path}main.css">
-
-    {favicon}
-    {in_header}
-</head>
-<body class="rustdoc">
-    <!--[if lte IE 8]>
-    <div class="warning">
-        This old browser is unsupported and will most likely display funky
-        things.
-    </div>
-    <![endif]-->
-
-    {before_content}
-
-    <nav class="sidebar">
-        {logo}
-        {sidebar}
-    </nav>
-
-    <nav class="sub">
-        <form class="search-form js-only">
-            <div class="search-container">
-                <input class="search-input" name="search"
-                       autocomplete="off"
-                       placeholder="Click or press ‘S’ to search, ‘?’ for more options…"
-                       type="search">
-            </div>
-        </form>
-    </nav>
-
-    <section id='main' class="content {ty}">{content}</section>
-    <section id='search' class="content hidden"></section>
-
-    <section class="footer"></section>
-
-    <aside id="help" class="hidden">
-        <div>
-            <h1 class="hidden">Help</h1>
-
-            <div class="shortcuts">
-                <h2>Keyboard Shortcuts</h2>
-
-                <dl>
-                    <dt>?</dt>
-                    <dd>Show this help dialog</dd>
-                    <dt>S</dt>
-                    <dd>Focus the search field</dd>
-                    <dt>&larrb;</dt>
-                    <dd>Move up in search results</dd>
-                    <dt>&rarrb;</dt>
-                    <dd>Move down in search results</dd>
-                    <dt>&#9166;</dt>
-                    <dd>Go to active search result</dd>
-                </dl>
-            </div>
-
-            <div class="infos">
-                <h2>Search Tricks</h2>
-
-                <p>
-                    Prefix searches with a type followed by a colon (e.g.
-                    <code>fn:</code>) to restrict the search to a given type.
-                </p>
-
-                <p>
-                    Accepted types are: <code>fn</code>, <code>mod</code>,
-                    <code>struct</code>, <code>enum</code>,
-                    <code>trait</code>, <code>type</code>, <code>macro</code>,
-                    and <code>const</code>.
-                </p>
-
-                <p>
-                    Search functions by type signature (e.g.
-                    <code>vec -> usize</code>)
-                </p>
-            </div>
-        </div>
-    </aside>
-
-    {after_content}
-
-    <script>
-        window.rootPath = "{root_path}";
-        window.currentCrate = "{krate}";
-        window.playgroundUrl = "{play_url}";
-    </script>
-    <script src="{root_path}jquery.js"></script>
-    <script src="{root_path}main.js"></script>
-    {play_js}
-    <script async src="{root_path}search-index.js"></script>
-</body>
-</html>"##,
-    content   = *t,
-    root_path = page.root_path,
-    ty        = page.ty,
-    logo      = if layout.logo.is_empty() {
-        "".to_string()
-    } else {
-        format!("<a href='{}{}/index.html'>\
-                 <img src='{}' alt='' width='100'></a>",
-                page.root_path, layout.krate,
-                layout.logo)
-    },
-    title     = page.title,
-    description = page.description,
-    keywords = page.keywords,
-    favicon   = if layout.favicon.is_empty() {
-        "".to_string()
-    } else {
-        format!(r#"<link rel="shortcut icon" href="{}">"#, layout.favicon)
-    },
-    in_header = layout.external_html.in_header,
-    before_content = layout.external_html.before_content,
-    after_content = layout.external_html.after_content,
-    sidebar   = *sidebar,
-    krate     = layout.krate,
-    play_url  = layout.playground_url,
-    play_js   = if layout.playground_url.is_empty() {
-        "".to_string()
-    } else {
-        format!(r#"<script src="{}playpen.js"></script>"#, page.root_path)
-    },
-    )
+impl<'a> Page<'a> {
+    crate fn get_static_root_path(&self) -> &str {
+        self.static_root_path.unwrap_or(self.root_path)
+    }
 }
 
-pub fn redirect(dst: &mut io::Write, url: &str) -> io::Result<()> {
+#[derive(Serialize)]
+struct PageLayout<'a> {
+    static_root_path: &'a str,
+    page: &'a Page<'a>,
+    layout: &'a Layout,
+    style_files: String,
+    sidebar: String,
+    content: String,
+    krate_with_trailing_slash: String,
+}
+
+crate fn render<T: Print, S: Print>(
+    templates: &tera::Tera,
+    layout: &Layout,
+    page: &Page<'_>,
+    sidebar: S,
+    t: T,
+    style_files: &[StylePath],
+) -> String {
+    let static_root_path = page.get_static_root_path();
+    let krate_with_trailing_slash = ensure_trailing_slash(&layout.krate).to_string();
+    let style_files = style_files
+        .iter()
+        .filter_map(|t| {
+            if let Some(stem) = t.path.file_stem() { Some((stem, t.disabled)) } else { None }
+        })
+        .filter_map(|t| if let Some(path) = t.0.to_str() { Some((path, t.1)) } else { None })
+        .map(|t| {
+            format!(
+                r#"<link rel="stylesheet" type="text/css" href="{}.css" {} {}>"#,
+                Escape(&format!("{}{}{}", static_root_path, t.0, page.resource_suffix)),
+                if t.1 { "disabled" } else { "" },
+                if t.0 == "light" { "id=\"themeStyle\"" } else { "" }
+            )
+        })
+        .collect::<String>();
+    let content = Buffer::html().to_display(t); // Note: This must happen before making the sidebar.
+    let sidebar = Buffer::html().to_display(sidebar);
+    let teractx = tera::Context::from_serialize(PageLayout {
+        static_root_path,
+        page,
+        layout,
+        style_files,
+        sidebar,
+        content,
+        krate_with_trailing_slash,
+    })
+    .unwrap();
+    templates.render("page.html", &teractx).unwrap()
+}
+
+crate fn redirect(url: &str) -> String {
     // <script> triggers a redirect before refresh, so this is fine.
-    write!(dst,
-r##"<!DOCTYPE html>
+    format!(
+        r##"<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta http-equiv="refresh" content="0;URL={url}">
+    <title>Redirection</title>
 </head>
 <body>
     <p>Redirecting to <a href="{url}">{url}</a>...</p>
     <script>location.replace("{url}" + location.search + location.hash);</script>
 </body>
 </html>"##,
-    url = url,
+        url = url,
     )
 }

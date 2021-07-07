@@ -1,15 +1,6 @@
-// Copyright 2013-2014 The Rust Project Developers. See the COPYRIGHT
-// file at the top-level directory of this distribution and at
-// http://rust-lang.org/COPYRIGHT.
-//
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
-
-// ignore-tidy-linelength
-// min-lldb-version: 310
+// Require a gdb or lldb that can read DW_TAG_variant_part.
+// min-gdb-version: 8.2
+// rust-lldb
 
 // compile-flags:-g
 
@@ -18,13 +9,13 @@
 // gdb-command:run
 
 // gdb-command:print *the_a
-// gdb-check:$1 = {{RUST$ENUM$DISR = TheA, x = 0, y = 8970181431921507452}, {RUST$ENUM$DISR = TheA, __0 = 0, __1 = 2088533116, __2 = 2088533116}}
+// gdbr-check:$1 = unique_enum::ABC::TheA{x: 0, y: 8970181431921507452}
 
 // gdb-command:print *the_b
-// gdb-check:$2 = {{RUST$ENUM$DISR = TheB, x = 0, y = 1229782938247303441}, {RUST$ENUM$DISR = TheB, __0 = 0, __1 = 286331153, __2 = 286331153}}
+// gdbr-check:$2 = unique_enum::ABC::TheB(0, 286331153, 286331153)
 
 // gdb-command:print *univariant
-// gdb-check:$3 = {{__0 = 123234}}
+// gdbr-check:$3 = unique_enum::Univariant::TheOnlyCase(123234)
 
 
 // === LLDB TESTS ==================================================================================
@@ -32,13 +23,13 @@
 // lldb-command:run
 
 // lldb-command:print *the_a
-// lldb-check:[...]$0 = TheA { x: 0, y: 8970181431921507452 }
+// lldbr-check:(unique_enum::ABC::TheA) *the_a = TheA { TheA: 0, TheB: 8970181431921507452 }
 
 // lldb-command:print *the_b
-// lldb-check:[...]$1 = TheB(0, 286331153, 286331153)
+// lldbr-check:(unique_enum::ABC::TheB) *the_b = { = 0 = 286331153 = 286331153 }
 
 // lldb-command:print *univariant
-// lldb-check:[...]$2 = TheOnlyCase(123234)
+// lldbr-check:(unique_enum::Univariant) *univariant = { TheOnlyCase = { = 123234 } }
 
 #![allow(unused_variables)]
 #![feature(box_syntax)]
